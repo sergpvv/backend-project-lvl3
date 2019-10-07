@@ -1,13 +1,13 @@
 import program from 'commander';
 
-import getPage from '.';
+import loadPage from '.';
 
 program
   .version('0.0.1', '-v, --version', 'Output the version number')
   .description('Download target page with all resources.')
-  .arguments('<page url>')
+  .arguments('<url>')
   .option('-o, --output [dirpath]', 'Specify output directory.')
-  .action((dirpath, pageUrl) => {
-    getPage(pageUrl, dirpath);
+  .action((dirpath, url) => {
+    loadPage(url, dirpath);
   })
   .parse(process.argv);

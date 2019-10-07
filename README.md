@@ -16,9 +16,9 @@ $ make install
 ## Usage
 ### Console utility
 ```sh
-$ page-loader [options] <page url>
+$ page-loader [options] <url>
 
-Compares two configuration files and shows a difference.
+Download target page with all resources.
 
 Options:
   -v, --version        Output the version number

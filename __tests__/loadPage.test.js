@@ -4,6 +4,6 @@ import fs from 'fs';
 
 import nock from 'nock';
 
-import getPage from 'getPage';
+import loadPage from '../src';
 
 
