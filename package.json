@@ -1,16 +1,16 @@
 {
   "name": "page-loader",
   "version": "0.0.1",
-  "description": "Download target page with all resources.",
+  "description": "Load web-page with all resources and save hier local in  html file.",
   "keywords": [
-    "download",
+    "load",
     "web",
     "page",
     "html"
   ],
   "main": "dist/index.js",
   "bin": {
-    "gendiff": "dist/bin/page-loader.js"
+    "page-loader": "dist/bin/page-loader.js"
   },
   "engines": {
     "node": ">=8"

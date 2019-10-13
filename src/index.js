@@ -1,3 +1,3 @@
-import getPage from './getPage';
+import loadPage from './loadPage';
 
-export { getPage as default };
+export { loadPage as default };

@@ -4,10 +4,17 @@ import loadPage from '.';
 
 program
   .version('0.0.1', '-v, --version', 'Output the version number')
-  .description('Download target page with all resources.')
+  .description('Load web-page with all resources and save hier local in html file.')
   .arguments('<url>')
-  .option('-o, --output [dirpath]', 'Specify output directory.')
-  .action((dirpath, url) => {
-    loadPage(url, dirpath);
+  .option('-o, --output [dir]', 'Specify save directory.')
+  .action((url) => {
+    loadPage(url, program.output || process.cwd())
+      .then((filename) => {
+        console.log(`${url} saved as ${filename}`);
+      })
+      .catch((error) => {
+        console.error(`${error.code}: ${error.message}`);
+        process.exit(1);
+      });
   })
   .parse(process.argv);

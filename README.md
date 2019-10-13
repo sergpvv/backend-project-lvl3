@@ -4,7 +4,7 @@
 [![Test Coverage](https://api.codeclimate.com/v1/badges/78bcb5e1308888cb666e/test_coverage)](https://codeclimate.com/github/sergpvv/backend-project-lvl3/test_coverage)
 [![Build Status](https://travis-ci.org/sergpvv/backend-project-lvl3.svg?branch=master)](https://travis-ci.org/sergpvv/backend-project-lvl3)
 
-Download target page with all resources.
+Load web-page with all resources and save hier local in html file.
 Third training project by [Hexlet](https://hexlet.io/#features) on the profession ["JS backend"](https://hexlet.io/professions/backend).
 
 ## Setup
@@ -18,16 +18,15 @@ $ make install
 ```sh
 $ page-loader [options] <url>
 
-Download target page with all resources.
-
 Options:
-  -v, --version        Output the version number
-  -o, --output         Specify output directory
-  -h, --help           Output usage information
+  -v, --version       Output the version number
+  -o, --output [dir]  Specify save directory.
+  -h, --help          output usage information
 
 ```
 ### API
 ```
-import getPage from 'getPage';
+import loadPage from 'loadPage';
 ```
 
+[![asciicast](https://asciinema.org/a/tBn0MYq7eYxnb76ZGVrNooXEL.svg)](https://asciinema.org/a/tBn0MYq7eYxnb76ZGVrNooXEL)
