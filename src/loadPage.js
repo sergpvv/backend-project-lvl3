@@ -6,10 +6,13 @@ import url from 'url';
 
 import path from 'path';
 
+import cheerio from 'cheerio';
+
+const buildName = (...parts) => parts.join('').replace(/\W/g, '-');
+
 export default (pageUrl, outputDir) => {
   const { hostname, pathname } = url.parse(pageUrl);
-  const pageName = `${hostname}${pathname}`.replace(/\W/g, '-');
-  const filename = path.join(outputDir, `${pageName}.html`);
+  const filename = path.join(outputDir, `${buildname(hostname, pathname)}.html`);
   return axios.get(pageUrl)
     .then(({ data }) => data)
     .then((content) => fs.writeFile(filename, content, 'utf-8'))
