@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <title>test page</title>
-<link href="/res/style.css" rel="stylesheet">
+<link href="/assets/style.css" rel="stylesheet">
 <link href="https://external.link/alt.css" rel="alternate stylesheet" type="text/css" title="alternative">
 </head>
 <body>
-<script type="text/javascript" src="/res/alert.js"></script>
-<img src="/res/kitty.jpg" alt="A cute orange cat lying on its back.">
+<script type="text/javascript" src="/assets/alert.js"></script>
+<img src="/assets/kitty.jpg" alt="A cute orange cat lying on its back.">
 </body>
 </html>
