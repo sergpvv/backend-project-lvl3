@@ -1,4 +1,4 @@
-import { promises as fs } from 'fs';
+import { promises as fs, createWriteStream } from 'fs';
 
 import axios from 'axios';
 
@@ -18,19 +18,20 @@ const isLocal = (uri, host) => {
   return !hostname || hostname === host;
 };
 
-export const toLocalName = (uri) => {
+const toLocalName = (uri) => {
   const { pathname } = url.parse(uri);
   const { dir, ext, name } = path.parse(pathname);
   return buildName(ext, path.join(dir, name).slice(1));
 };
 
-const tagSrc = { link: 'href', script: 'src', img: 'src' };
+const resourcesTagsAttributes = { link: 'href', script: 'src', img: 'src' };
 
 const processResources = (html, hostname, outDir) => {
   const dom = cheerio.load(html, { decodeEntities: false });
   const localResources = [];
-  Object.entries(tagSrc).forEach(([tag, src]) => {
-    dom(`${tag}[${src}]`).each((index, element) => {
+  Object.entries(resourcesTagsAttributes)
+    .forEach(([tag, src]) => {
+      dom(`${tag}[${src}]`).each((index, element) => {
       const resource = dom(element).attr(src);
       if (isLocal(resource, hostname)) {
         dom(element).attr(src, path.join(outDir, toLocalName(resource)));
@@ -45,8 +46,8 @@ const processResources = (html, hostname, outDir) => {
 const download = (resource, pageUrl, outDir) => {
   const uri = url.resolve(pageUrl, resource);
   const filename = path.join(outDir, toLocalName(resource));
-  return axios.get(uri, { responseType: 'arrayBuffer' })
-    .then(({ data }) => fs.writeFile(filename, data));
+  return axios.get(uri, { responseType: 'stream' })
+    .then(({ data }) => data.pipe(createWriteStream(filename)));
 };
 
 export default (pageUrl, outputDir) => {
