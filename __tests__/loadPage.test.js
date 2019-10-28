@@ -19,15 +19,15 @@ let outputDir;
 
 beforeEach(async () => {
   outputDir = await fs.mkdtemp(path.join(os.tmpdir(), path.sep));
-   nock(url)
-     .get(pagePath)
-     .replyWithFile(200, buildFilepath('helloworld'), { 'Content-Type': 'text/html' })
-     .get(`/${resourcesPath}/style.css`)
-     .replyWithFile(200, buildFilepath('style'), { 'Content-Type': 'text/css' })
-     .get(`/${resourcesPath}/script.js`)
-     .replyWithFile(200, buildFilepath('script'), { 'Content-Type': 'application/javascript' })
-     .get(`/${resourcesPath}/picture.jpg`)
-     .replyWithFile(200, buildFilepath('picture'), { 'Content-Type': 'image/jpg' });
+  nock(url)
+    .get(pagePath)
+    .replyWithFile(200, buildFilepath('helloworld'), { 'Content-Type': 'text/html' })
+    .get(`/${resourcesPath}/style.css`)
+    .replyWithFile(200, buildFilepath('style'), { 'Content-Type': 'text/css' })
+    .get(`/${resourcesPath}/script.js`)
+    .replyWithFile(200, buildFilepath('script'), { 'Content-Type': 'application/javascript' })
+    .get(`/${resourcesPath}/picture.jpg`)
+    .replyWithFile(200, buildFilepath('picture'), { 'Content-Type': 'image/jpg' });
 });
 
 it('download page', async () => {

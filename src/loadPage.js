@@ -32,13 +32,13 @@ const processResources = (html, hostname, outDir) => {
   Object.entries(resourcesTagsAttributes)
     .forEach(([tag, src]) => {
       dom(`${tag}[${src}]`).each((index, element) => {
-      const resource = dom(element).attr(src);
-      if (isLocal(resource, hostname)) {
-        dom(element).attr(src, path.join(outDir, toLocalName(resource)));
-        localResources.push(resource);
-      }
+        const resource = dom(element).attr(src);
+        if (isLocal(resource, hostname)) {
+          dom(element).attr(src, path.join(outDir, toLocalName(resource)));
+          localResources.push(resource);
+        }
+      });
     });
-  });
   const pageWithLocalRes = dom.html();
   return { pageWithLocalRes, localResources };
 };
