@@ -1,6 +1,6 @@
 {
   "name": "page-loader",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Load web-page with all resources and save hier local in  html file.",
   "keywords": [
     "load",
@@ -19,7 +19,7 @@
     "dist"
   ],
   "scripts": {
-    "test": "jest",
+    "test": "DEBUG=page-loader jest",
     "build": "NODE_ENV=production babel src --out-dir dist --source-maps inline",
     "prepublishOnly": "npm run build"
   },
@@ -53,6 +53,7 @@
     "axios": "^0.19.0",
     "cheerio": "^1.0.0-rc.3",
     "commander": "^3.0.2",
+    "debug": "^4.1.1",
     "fs": "0.0.1-security",
     "lodash": "^4.17.15",
     "source-map-support": "^0.5.13"

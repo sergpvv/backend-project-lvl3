@@ -32,3 +32,5 @@ import loadPage from 'loadPage';
 [![asciicast](https://asciinema.org/a/tBn0MYq7eYxnb76ZGVrNooXEL.svg)](https://asciinema.org/a/tBn0MYq7eYxnb76ZGVrNooXEL)
 
 [![asciicast](https://asciinema.org/a/u63efX5lgzMxYKvSCEl38sqdk.svg)](https://asciinema.org/a/u63efX5lgzMxYKvSCEl38sqdk)
+
+[![asciicast](https://asciinema.org/a/ruwottP5yOex1jiwJ2JZlgmDG.svg)](https://asciinema.org/a/ruwottP5yOex1jiwJ2JZlgmDG)
