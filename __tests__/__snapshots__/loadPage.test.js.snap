@@ -1,0 +1,9 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`test errors nonexistent hostname 1`] = `"getaddrinfo ENOTFOUND"`;
+
+exports[`test errors nonexistent output directory 1`] = `"ENOENT: no such file or directory, mkdir '/nonexist/go-ods-test-page_files'"`;
+
+exports[`test errors nonexistent resource 1`] = `"Request failed with status code 404"`;
+
+exports[`test errors permission denied 1`] = `"EACCES: permission denied, mkdir '/home/go-ods-test-page_files'"`;
