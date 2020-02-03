@@ -14,7 +14,6 @@ const site = 'https://go.ods';
 const pagePath = '/test/page';
 const pageName = 'go-ods-test-page';
 const url = `${site}${pagePath}`;
-const wrongUrl = 'https://nonexist.ent';
 const resourcesDir = `${pageName}_files`;
 const resourcesPath = 'assets';
 let outputDir;
@@ -31,7 +30,19 @@ beforeEach(async () => {
     .get(`/${resourcesPath}/script.js`)
     .replyWithFile(200, buildFilepath('script'), { 'Content-Type': 'application/javascript' })
     .get(`/${resourcesPath}/picture.jpg`)
-    .replyWithFile(200, buildFilepath('picture'), { 'Content-Type': 'image/jpg' });
+    .replyWithFile(200, buildFilepath('picture'), { 'Content-Type': 'image/jpg' })
+    .get('/nonres')
+    .reply(404)
+    .get('/nonhost')
+    .replyWithError({
+      message: 'getaddrinfo ENOTFOUND',
+      code: 'ENOTFOUND',
+    })
+    .get('/networktroubles')
+    .replyWithError({
+      message: 'getaddrinfo EAI_AGAIN',
+      code: 'EAI_AGAIN',
+    });
 });
 
 describe('correct data', () => {
@@ -62,28 +73,25 @@ describe('correct data', () => {
 });
 
 describe('test errors', () => {
-  nock(wrongUrl)
-    .get('/')
-    .replyWithError({
-      message: 'getaddrinfo ENOTFOUND',
-      code: 'ENOTFOUND',
-    })
-    .get(pagePath)
-    .reply(404);
   it('nonexistent hostname', async () => {
-    await expect(loadPage(`${wrongUrl}/`, outputDir))
+    await expect(loadPage(`${site}/nonhost`, outputDir))
       .rejects.toThrowErrorMatchingSnapshot();
   });
   it('nonexistent resource', async () => {
-    await expect(loadPage(`${wrongUrl}${pagePath}`, outputDir))
+    await expect(loadPage(`${site}/nonres`, outputDir))
       .rejects.toThrowErrorMatchingSnapshot();
   });
   it('nonexistent output directory', async () => {
     await expect(loadPage(url, '/nonexist'))
       .rejects.toThrowErrorMatchingSnapshot();
   });
+  it('network troubles', async () => {
+    await expect(loadPage(`${site}/networktroubles`, outputDir))
+      .rejects.toThrowErrorMatchingSnapshot();
+  });
+
   it('permission denied', async () => {
-    await expect(loadPage(url, '/home'))
+    await expect(loadPage(url, '/'))
       .rejects.toThrowErrorMatchingSnapshot();
   });
 });
