@@ -1,6 +1,6 @@
 {
   "name": "page-loader",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Load web-page with all resources and save hier local in  html file.",
   "keywords": [
     "load",

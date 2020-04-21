@@ -3,7 +3,7 @@ import program from 'commander';
 import loadPage from '.';
 
 program
-  .version('0.0.3', '-v, --version', 'Output the version number')
+  .version('0.0.4', '-v, --version', 'Output the version number')
   .description('Load web-page with all resources and save hier local in html file.')
   .arguments('<url>')
   .option('-o, --output [dir]', 'Specify save directory.')
@@ -12,9 +12,8 @@ program
       .then((filename) => {
         console.log(`${url} saved as ${filename}`);
       })
-      .catch((error) => {
-        console.error(`${error.code}: ${error.message}`);
-        console.log(JSON.stringify(error, null, '  '));
+      .catch(({ message }) => {
+        console.error(message);
         process.exit(1);
       });
   })
