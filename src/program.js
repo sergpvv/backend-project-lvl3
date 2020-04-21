@@ -14,6 +14,7 @@ program
       })
       .catch((error) => {
         console.error(`${error.code}: ${error.message}`);
+        console.log(JSON.stringify(error, null, '  '));
         process.exit(1);
       });
   })
