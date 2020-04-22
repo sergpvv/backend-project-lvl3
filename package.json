@@ -1,6 +1,6 @@
 {
   "name": "page-loader",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Load web-page with all resources and save hier local in  html file.",
   "keywords": [
     "load",
@@ -55,6 +55,7 @@
     "commander": "^5.0.0",
     "debug": "^4.1.1",
     "fs": "0.0.1-security",
+    "listr": "^0.14.3",
     "lodash": "^4.17.15",
     "source-map-support": "^0.5.18"
   }
