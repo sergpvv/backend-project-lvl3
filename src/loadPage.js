@@ -40,7 +40,6 @@ const download = (resource, pageUrl, outDir) => {
 
 export default (pageUrl, outputDir) => {
   const { hostname, pathname } = url.parse(pageUrl);
-  // console.log(`hostnasme: ${hostname}\npathname: ${pathname}\n outputDir: ${outputDir}`);
   const filename = path.join(outputDir, buildName('.html', hostname, pathname));
   const resourceDir = path.join(outputDir, buildName('_files', hostname, pathname));
   const listrTasks = new Listr([], { concurrent: true, exitOnError: false });
