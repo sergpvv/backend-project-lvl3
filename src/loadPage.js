@@ -11,25 +11,6 @@ const log = debug('page-loader');
 
 const resourcesMap = { link: 'href', script: 'src', img: 'src' };
 
-const processResources = (html, hostname, outDir) => {
-  const dom = cheerio.load(html, { decodeEntities: false });
-  const localResources = [];
-  Object.entries(resourcesMap)
-    .forEach(([tag, src]) => {
-      dom(`${tag}[${src}]`).each((index, element) => {
-        const resource = dom(element).attr(src);
-        log(`processing ${resource}`);
-        if (isLocal(resource, hostname)) {
-          dom(element).attr(src, path.join(outDir, toLocalName(resource)));
-          localResources.push(resource);
-        }
-      });
-    });
-  log('resources processing is complete');
-  const pageWithLocalRes = dom.html();
-  return { pageWithLocalRes, localResources };
-};
-
 const download = (resource, pageUrl, outDir) => {
   const filename = path.join(outDir, toLocalName(resource));
   return axios
@@ -38,21 +19,44 @@ const download = (resource, pageUrl, outDir) => {
     .then(() => log(`${resource} successfully downloaded`));
 };
 
+const processResources = (html, pageUrl, resourceDir) => {
+  const { hostname } = url.parse(pageUrl);
+  const dom = cheerio.load(html, { decodeEntities: false });
+  const resourceLoadingTasks = [];
+  Object.entries(resourcesMap)
+    .forEach(([tag, src]) => {
+      dom(`${tag}[${src}]`).each((index, element) => {
+        const resource = dom(element).attr(src);
+        log(`processing ${resource}`);
+        if (isLocal(resource, hostname)) {
+          dom(element).attr(src, path.join(resourceDir, toLocalName(resource)));
+          resourceLoadingTasks
+            .push({
+              title: resource,
+              task: () => download(resource, pageUrl, resourceDir),
+            });
+        }
+      });
+    });
+  log('resources processing is complete');
+  const pageWithLocalRes = dom.html();
+  return { pageWithLocalRes, resourceLoadingTasks };
+};
+
 export default (pageUrl, outputDir) => {
   const { hostname, pathname } = url.parse(pageUrl);
   const filename = path.join(outputDir, buildName('.html', hostname, pathname));
   const resourceDir = path.join(outputDir, buildName('_files', hostname, pathname));
-  const listrTasks = new Listr([], { concurrent: true, exitOnError: false });
+  const listrTasksList = [];
   return axios
     .get(pageUrl)
     .then(({ data }) => {
       log(`${pageUrl} download complete, processing resources`);
-      const { pageWithLocalRes, localResources } = processResources(data, hostname, resourceDir);
-      localResources
-        .forEach((resource) => listrTasks.add({
-          title: resource,
-          task: () => download(resource, pageUrl, resourceDir),
-        }));
+      const {
+        pageWithLocalRes,
+        resourceLoadingTasks,
+      } = processResources(data, pageUrl, resourceDir);
+      listrTasksList.push(resourceLoadingTasks);
       return pageWithLocalRes;
     })
     .then((pageWithLocalRes) => {
@@ -65,6 +69,7 @@ export default (pageUrl, outputDir) => {
     })
     .then(() => {
       log('download local resources');
+      const listrTasks = new Listr(listrTasksList.flat(), { concurrent: true, exitOnError: false });
       return listrTasks.run();
     })
     .then(() => {
