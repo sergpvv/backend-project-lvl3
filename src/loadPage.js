@@ -47,7 +47,6 @@ export default (pageUrl, outputDir) => {
   const { hostname, pathname } = url.parse(pageUrl);
   const filename = path.join(outputDir, buildName('.html', hostname, pathname));
   const resourceDir = path.join(outputDir, buildName('_files', hostname, pathname));
-  const listrTasksList = [];
   return axios
     .get(pageUrl)
     .then(({ data }) => {
@@ -56,21 +55,43 @@ export default (pageUrl, outputDir) => {
         pageWithLocalRes,
         resourceLoadingTasks,
       } = processResources(data, pageUrl, resourceDir);
-      listrTasksList.push(resourceLoadingTasks);
-      return pageWithLocalRes;
-    })
-    .then((pageWithLocalRes) => {
-      log(`save downloaded page to ${filename}`);
-      return fs.writeFile(filename, pageWithLocalRes, 'utf-8');
-    })
-    .then(() => {
-      log(`make direcory ${resourceDir} `);
-      return fs.mkdir(resourceDir);
-    })
-    .then(() => {
-      log('download local resources');
-      const listrTasks = new Listr(listrTasksList.flat(), { concurrent: true, exitOnError: false });
-      return listrTasks.run();
+      /*
+      const listrTasks = new Listr(
+        resourceLoadingTasks,
+        { concurrent: true, exitOnError: false },
+      );
+
+      return Promise.all([
+        [`saving page to ${filename}`, fs.writeFile, [filename, pageWithLocalRes, 'utf-8']],
+        [`make direcory ${resourceDir}`, fs.mkdir, [resourceDir]],
+        ['download local resources', listrTasks.run, []],
+      ]
+        .map(([message, func, args]) => (() => {
+          log(message);
+          return func(...args);
+        })()));
+*/
+      const savePageWithLocalRes = () => {
+        log(`save downloaded page to ${filename}`);
+        return fs.writeFile(filename, pageWithLocalRes, 'utf-8');
+      };
+      const makeResourcesDirtory = () => {
+        log(`make direcory ${resourceDir}`);
+        return fs.mkdir(resourceDir);
+      };
+      const downloadResources = () => {
+        log('download local resources');
+        const listrTasks = new Listr(
+          resourceLoadingTasks,
+          { concurrent: true, exitOnError: false },
+        );
+        return listrTasks.run();
+      };
+      return Promise.all([
+        savePageWithLocalRes(),
+        makeResourcesDirtory(),
+        downloadResources(),
+      ]);
     })
     .then(() => {
       log(`${pageUrl} successfully saved as ${filename}`);
