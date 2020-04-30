@@ -23,7 +23,7 @@ let filename;
 nock.disableNetConnect();
 
 describe('correct data', () => {
-  beforeEach(async () => {
+  beforeEach(() => {
     outputDir = makeDir();
     nock(site)
       .get(pagePath)
@@ -63,7 +63,7 @@ describe('correct data', () => {
 });
 
 describe('test errors', () => {
-  beforeEach(async () => {
+  beforeEach(() => {
     nock(site)
       .get(pagePath)
       .replyWithFile(200, buildFilepath('withoutres'), { 'Content-Type': 'text/html' })
