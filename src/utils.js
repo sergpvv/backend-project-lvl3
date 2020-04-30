@@ -16,8 +16,9 @@ export const toLocalName = (url) => {
   const { dir, ext, name } = path.parse(pathname);
   return buildName(ext, path.join(dir, name).slice(1));
 };
-
+/*
 export default (pageUrl) => {
   const { hostname, pathname } = parse(pageUrl);
   return buildName('.html', hostname, pathname);
 };
+*/

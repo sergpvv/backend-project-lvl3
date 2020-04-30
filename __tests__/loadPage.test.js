@@ -1,11 +1,7 @@
 import { promises as fs, mkdtempSync } from 'fs';
-
 import path from 'path';
-
 import os from 'os';
-
 import nock from 'nock';
-
 import loadPage from '../src';
 
 const buildFilepath = (filename) => path.join(__dirname, '__fixtures__', filename);
