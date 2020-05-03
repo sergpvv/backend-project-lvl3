@@ -1,4 +1,4 @@
-import { promises as fs, mkdtempSync } from 'fs';
+import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 import nock from 'nock';
@@ -11,15 +11,13 @@ const pageName = 'go-ods-test-page';
 const url = `${site}${pagePath}`;
 const resourcesDir = `${pageName}_files`;
 const resourcesPath = 'assets';
-const tmpDir = os.tmpdir();
-const makeDir = () => mkdtempSync(path.join(tmpDir, path.sep));
-let outputDir;
-let filename;
+const makeTmpDir = () => fs.mkdtemp(path.join(os.tmpdir(), path.sep));
+const nonexist = '/nonexistentresource';
+const unknown = '/unknownhostname';
 
 nock.disableNetConnect();
 
 beforeEach(() => {
-  outputDir = makeDir();
   nock(site)
     .get(pagePath)
     .replyWithFile(200, buildFilepath('helloworld'), { 'Content-Type': 'text/html' })
@@ -29,51 +27,43 @@ beforeEach(() => {
     .replyWithFile(200, buildFilepath('script'), { 'Content-Type': 'application/javascript' })
     .get(`/${resourcesPath}/picture.jpg`)
     .replyWithFile(200, buildFilepath('picture'), { 'Content-Type': 'image/jpg' })
-    .get('/nonexist')
+    .get(nonexist)
     .reply(404)
-    .get('/unknown')
+    .get(unknown)
     .replyWithError({
       message: 'getaddrinfo ENOTFOUND',
       code: 'ENOTFOUND',
     });
 });
 
-describe('correct data', () => {
-  it('download page', async () => {
-    filename = await loadPage(url, outputDir);
-    const expectedFilename = path.join(outputDir, `${pageName}.html`);
-    expect(await fs.readFile(filename, 'utf-8')).not.toBeNull();
-    expect(filename).toBe(expectedFilename);
-  });
+it('correct data', async () => {
+  const outputDir = await makeTmpDir();
+  const filename = await loadPage(url, outputDir);
+  const expectedFilename = path.join(outputDir, `${pageName}.html`);
+  expect(await fs.readFile(filename, 'utf-8')).not.toBeNull();
+  expect(filename).toBe(expectedFilename);
 
-  it('download resources', async () => {
-    await loadPage(url, outputDir);
-    [['css', 'style', 'utf-8'], ['js', 'script', 'utf-8']]
-      .forEach(async ([type, name, encoding]) => {
-        const resFilename = path.join(outputDir, resourcesDir, `${resourcesPath}-${name}.${type}`);
-        expect(await fs.readFile(resFilename, encoding))
-          .toBe(await fs.readFile(buildFilepath(name), encoding));
-      });
-  });
+  [['css', 'style', 'utf-8'], ['js', 'script', 'utf-8']]
+    .forEach(async ([type, name, encoding]) => {
+      const resFilename = path.join(outputDir, resourcesDir, `${resourcesPath}-${name}.${type}`);
+      expect(await fs.readFile(resFilename, encoding))
+        .toBe(await fs.readFile(buildFilepath(name), encoding));
+    });
 
-  it('download binary resource', async () => {
-    await loadPage(url, outputDir);
-    const { size: expected } = await fs.stat(buildFilepath('picture'));
-    const resFilename = path.join(outputDir, resourcesDir, `${resourcesPath}-picture.jpg`);
-    const { size: actual } = await fs.stat(resFilename);
-    expect(actual).toBe(expected);
-  });
+  const { size: expected } = await fs.stat(buildFilepath('picture'));
+  const resFilename = path.join(outputDir, resourcesDir, `${resourcesPath}-picture.jpg`);
+  const { size: actual } = await fs.stat(resFilename);
+  expect(actual).toBe(expected);
 });
 
-describe('test errors', () => {
-  it.each([['unknown hostname', `${site}/unknown`, makeDir()],
-    ['nonexistent resource', `${site}/nonexist`, makeDir()],
-    ['nonexistent output directory', url, '/nonexist'],
-    ['mkdir permission denied', url, '/']])(
-    '%s',
-    async (test, page, dir) => {
-      await expect(loadPage(page, dir))
-        .rejects.toThrowErrorMatchingSnapshot();
-    },
-  );
-});
+it.each([['unknown hostname', `${site}${unknown}`, null],
+  ['nonexistent resource', `${site}${nonexist}`, null],
+  ['nonexistent output directory', url, nonexist],
+  ['permission denied', url, '/']])(
+  '%s',
+  async (test, page, dir) => {
+    const outputDir = dir === null ? await makeTmpDir() : dir;
+    await expect(loadPage(page, outputDir))
+      .rejects.toThrowErrorMatchingSnapshot();
+  },
+);
