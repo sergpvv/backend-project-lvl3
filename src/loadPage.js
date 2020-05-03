@@ -22,7 +22,7 @@ const download = (resource, pageUrl, outDir) => {
 const processResources = (html, pageUrl, resourceDir) => {
   const { hostname } = url.parse(pageUrl);
   const dom = cheerio.load(html, { decodeEntities: false });
-  const resourceLoadingTasks = [];
+  const localResources = [];
   Object.entries(resourcesMap)
     .forEach(([tag, src]) => {
       dom(`${tag}[${src}]`).each((index, element) => {
@@ -30,17 +30,34 @@ const processResources = (html, pageUrl, resourceDir) => {
         log(`processing ${resource}`);
         if (isLocal(resource, hostname)) {
           dom(element).attr(src, path.join(resourceDir, toLocalName(resource)));
-          resourceLoadingTasks
-            .push({
-              title: resource,
-              task: () => download(resource, pageUrl, resourceDir),
-            });
+          localResources.push(resource);
         }
       });
     });
   log('resources processing is complete');
   const pageWithLocalRes = dom.html();
-  return { pageWithLocalRes, resourceLoadingTasks };
+  return { pageWithLocalRes, localResources };
+};
+
+const saveDownloadedPage = (filename, data) => {
+  log(`save downloaded page to ${filename}`);
+  return fs.writeFile(filename, data, 'utf-8');
+};
+
+const downloadResources = (resources, pageUrl, resourceDir) => {
+  log(`make directory ${resourceDir} `);
+  return fs.mkdir(resourceDir)
+    .then(() => {
+      const listrTasks = new Listr(
+        resources.map((title) => ({
+          title,
+          task: () => download(title, pageUrl, resourceDir),
+        })),
+        { concurrent: true, exitOnError: false },
+      );
+      log('download local resources');
+      return listrTasks.run();
+    });
 };
 
 export default (pageUrl, outputDir) => {
@@ -51,48 +68,12 @@ export default (pageUrl, outputDir) => {
     .get(pageUrl)
     .then(({ data }) => {
       log(`${pageUrl} download complete, processing resources`);
-      const {
-        pageWithLocalRes,
-        resourceLoadingTasks,
-      } = processResources(data, pageUrl, resourceDir);
-      /*
-      const listrTasks = new Listr(
-        resourceLoadingTasks,
-        { concurrent: true, exitOnError: false },
-      );
-
-      return Promise.all([
-        [`saving page to ${filename}`, fs.writeFile, [filename, pageWithLocalRes, 'utf-8']],
-        [`make direcory ${resourceDir}`, fs.mkdir, [resourceDir]],
-        ['download local resources', listrTasks.run, []],
-      ]
-        .map(([message, func, args]) => (() => {
-          log(message);
-          return func(...args);
-        })()));
-*/
-      const savePageWithLocalRes = () => {
-        log(`save downloaded page to ${filename}`);
-        return fs.writeFile(filename, pageWithLocalRes, 'utf-8');
-      };
-      const makeResourcesDirtory = () => {
-        log(`make direcory ${resourceDir}`);
-        return fs.mkdir(resourceDir);
-      };
-      const downloadResources = () => {
-        log('download local resources');
-        const listrTasks = new Listr(
-          resourceLoadingTasks,
-          { concurrent: true, exitOnError: false },
-        );
-        return listrTasks.run();
-      };
-      return Promise.all([
-        savePageWithLocalRes(),
-        makeResourcesDirtory(),
-        downloadResources(),
-      ]);
+      return processResources(data, pageUrl, resourceDir);
     })
+    .then(({ pageWithLocalRes, localResources }) => Promise.all([
+      saveDownloadedPage(filename, pageWithLocalRes),
+      downloadResources(localResources, pageUrl, resourceDir),
+    ]))
     .then(() => {
       log(`${pageUrl} successfully saved as ${filename}`);
       return filename;

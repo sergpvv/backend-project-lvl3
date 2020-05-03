@@ -18,20 +18,27 @@ let filename;
 
 nock.disableNetConnect();
 
-describe('correct data', () => {
-  beforeEach(() => {
-    outputDir = makeDir();
-    nock(site)
-      .get(pagePath)
-      .replyWithFile(200, buildFilepath('helloworld'), { 'Content-Type': 'text/html' })
-      .get(`/${resourcesPath}/style.css`)
-      .replyWithFile(200, buildFilepath('style'), { 'Content-Type': 'text/css' })
-      .get(`/${resourcesPath}/script.js`)
-      .replyWithFile(200, buildFilepath('script'), { 'Content-Type': 'application/javascript' })
-      .get(`/${resourcesPath}/picture.jpg`)
-      .replyWithFile(200, buildFilepath('picture'), { 'Content-Type': 'image/jpg' });
-  });
+beforeEach(() => {
+  outputDir = makeDir();
+  nock(site)
+    .get(pagePath)
+    .replyWithFile(200, buildFilepath('helloworld'), { 'Content-Type': 'text/html' })
+    .get(`/${resourcesPath}/style.css`)
+    .replyWithFile(200, buildFilepath('style'), { 'Content-Type': 'text/css' })
+    .get(`/${resourcesPath}/script.js`)
+    .replyWithFile(200, buildFilepath('script'), { 'Content-Type': 'application/javascript' })
+    .get(`/${resourcesPath}/picture.jpg`)
+    .replyWithFile(200, buildFilepath('picture'), { 'Content-Type': 'image/jpg' })
+    .get('/nonexist')
+    .reply(404)
+    .get('/unknown')
+    .replyWithError({
+      message: 'getaddrinfo ENOTFOUND',
+      code: 'ENOTFOUND',
+    });
+});
 
+describe('correct data', () => {
   it('download page', async () => {
     filename = await loadPage(url, outputDir);
     const expectedFilename = path.join(outputDir, `${pageName}.html`);
@@ -59,18 +66,6 @@ describe('correct data', () => {
 });
 
 describe('test errors', () => {
-  beforeEach(() => {
-    nock(site)
-      .get(pagePath)
-      .replyWithFile(200, buildFilepath('withoutres'), { 'Content-Type': 'text/html' })
-      .get('/nonexist')
-      .reply(404)
-      .get('/unknown')
-      .replyWithError({
-        message: 'getaddrinfo ENOTFOUND',
-        code: 'ENOTFOUND',
-      });
-  });
   it.each([['unknown hostname', `${site}/unknown`, makeDir()],
     ['nonexistent resource', `${site}/nonexist`, makeDir()],
     ['nonexistent output directory', url, '/nonexist'],
