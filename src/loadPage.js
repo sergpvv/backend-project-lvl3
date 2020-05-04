@@ -1,26 +1,26 @@
 import { promises as fs, createWriteStream } from 'fs';
 import axios from 'axios';
-import url from 'url';
-import path from 'path';
+import { parse, resolve } from 'url';
 import cheerio from 'cheerio';
 import debug from 'debug';
 import Listr from 'listr';
-import { buildName, isLocal, toLocalName } from './utils';
+import getLocalNames, { isLocal, buildResourceFilename } from './utils';
 
 const log = debug('page-loader');
 
 const resourcesMap = { link: 'href', script: 'src', img: 'src' };
 
-const download = (resource, pageUrl, outDir) => {
-  const filename = path.join(outDir, toLocalName(resource));
+const download = ({ resource, filename }) => {
+  log(`download ${resource}`);
+  // console.log(`resource: ${resource}\nfilename: ${filename}`);
   return axios
-    .get(url.resolve(pageUrl, resource), { responseType: 'stream' })
+    .get(resource, { responseType: 'stream' })
     .then(({ data }) => data.pipe(createWriteStream(filename)))
-    .then(() => log(`${resource} successfully downloaded`));
+    .then(() => log(`${resource} successfully saved as ${filename}`));
 };
 
-const processResources = (html, pageUrl, resourceDir) => {
-  const { hostname } = url.parse(pageUrl);
+const processResources = (html, pageUrl, outputDirectory) => {
+  const { hostname } = parse(pageUrl);
   const dom = cheerio.load(html, { decodeEntities: false });
   const localResources = [];
   Object.entries(resourcesMap)
@@ -29,8 +29,9 @@ const processResources = (html, pageUrl, resourceDir) => {
         const resource = dom(element).attr(src);
         log(`processing ${resource}`);
         if (isLocal(resource, hostname)) {
-          dom(element).attr(src, path.join(resourceDir, toLocalName(resource)));
-          localResources.push(resource);
+          const filename = buildResourceFilename(outputDirectory, resource);
+          dom(element).attr(src, filename);
+          localResources.push({ resource: resolve(pageUrl, resource), filename });
         }
       });
     });
@@ -44,14 +45,14 @@ const saveDownloadedPage = (filename, data) => {
   return fs.writeFile(filename, data, 'utf-8');
 };
 
-const downloadResources = (resources, pageUrl, resourceDir) => {
-  log(`make directory ${resourceDir} `);
-  return fs.mkdir(resourceDir)
+const downloadResources = (resources, pageUrl, resourcesDirectory) => {
+  log(`make directory ${resourcesDirectory} `);
+  return fs.mkdir(resourcesDirectory)
     .then(() => {
       const listrTasks = new Listr(
-        resources.map((title) => ({
-          title,
-          task: () => download(title, pageUrl, resourceDir),
+        resources.map(({ resource, filename }) => ({
+          title: resource,
+          task: () => download({ resource, filename }),
         })),
         { concurrent: true, exitOnError: false },
       );
@@ -60,19 +61,17 @@ const downloadResources = (resources, pageUrl, resourceDir) => {
     });
 };
 
-export default (pageUrl, outputDir) => {
-  const { hostname, pathname } = url.parse(pageUrl);
-  const filename = path.join(outputDir, buildName('.html', hostname, pathname));
-  const resourceDir = path.join(outputDir, buildName('_files', hostname, pathname));
+export default (pageUrl, outputDirectory) => {
+  const { filename, resourcesDirectory } = getLocalNames(pageUrl, outputDirectory);
   return axios
     .get(pageUrl)
     .then(({ data }) => {
       log(`${pageUrl} download complete, processing resources`);
-      return processResources(data, pageUrl, resourceDir);
+      return processResources(data, pageUrl, resourcesDirectory);
     })
     .then(({ pageWithLocalRes, localResources }) => Promise.all([
       saveDownloadedPage(filename, pageWithLocalRes),
-      downloadResources(localResources, pageUrl, resourceDir),
+      downloadResources(localResources, pageUrl, resourcesDirectory),
     ]))
     .then(() => {
       log(`${pageUrl} successfully saved as ${filename}`);

@@ -1,9 +1,9 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`nonexistent output directory 1`] = `"ENOENT: no such file or directory, open '/nonexistentresource/go-ods-test-page.html'"`;
+exports[`nonexistent output directory 1`] = `"ENOENT: no such file or directory, open '/nonexistentresource/tests-ite-test-page.html'"`;
 
 exports[`nonexistent resource 1`] = `"Request failed with status code 404"`;
 
-exports[`permission denied 1`] = `"EACCES: permission denied, open '/go-ods-test-page.html'"`;
+exports[`permission denied 1`] = `"EACCES: permission denied, open '/tests-ite-test-page.html'"`;
 
 exports[`unknown hostname 1`] = `"getaddrinfo ENOTFOUND"`;

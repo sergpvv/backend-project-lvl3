@@ -1,18 +1,34 @@
-import path from 'path';
+import { join } from 'path';
 import { parse } from 'url';
 
-export const buildName = (ext, ...parts) => {
-  const name = parts.join('').replace(/\W/g, '-');
-  return `${name}${ext}`;
+const nameTails = {
+  file: '.html',
+  dir: '_files',
 };
+
+export const normalize = (str) => str.replace(/\W/g, '-');
+
+export const buildName = (dir, name, tail) => join(dir, [name, tail].join(''));
 
 export const isLocal = (url, host) => {
   const { hostname } = parse(url);
   return !hostname || hostname === host;
 };
 
-export const toLocalName = (url) => {
-  const { pathname } = parse(url);
-  const { dir, ext, name } = path.parse(pathname);
-  return buildName(ext, path.join(dir, name).slice(1));
+export const buildResourceFilename = (resourcesDirectory, resource) => {
+  const { pathname } = parse(resource);
+  const localName = normalize(pathname.slice(1));
+  return join(resourcesDirectory, localName);
+};
+
+export default (pageUrl, outputDirectory) => {
+  const { hostname, pathname } = parse(pageUrl);
+  // console.log(`pageUrl: ${pageUrl}\n  hostname: ${hostname}\n  pathname: ${pathname}`);
+  const localName = normalize(join(hostname, pathname));
+  // const pageName = join(hostname, pathname);
+  // console.log(`pageName: ${pageName}`);
+  // const localName = normalize(pageName);
+  const [filename, resourcesDirectory] = Object.values(nameTails)
+    .map((nameTail) => buildName(outputDirectory, localName, nameTail));
+  return { filename, resourcesDirectory };
 };
