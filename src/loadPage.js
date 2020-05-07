@@ -22,7 +22,7 @@ const download = ({ resource, filename }) => {
 const processResources = (html, pageUrl, outputDirectory) => {
   const { hostname } = parse(pageUrl);
   const dom = cheerio.load(html, { decodeEntities: false });
-  const localResources = [];
+  /* const localResources = [];
   Object.entries(resourcesMap)
     .forEach(([tag, src]) => {
       dom(`${tag}[${src}]`).each((index, element) => {
@@ -34,6 +34,20 @@ const processResources = (html, pageUrl, outputDirectory) => {
           localResources.push({ resource: resolve(pageUrl, resource), filename });
         }
       });
+    });
+*/
+  const getUrl = ({ name, attribs }) => attribs[resourcesMap[name]];
+  const localResources = Object.entries(resourcesMap)
+    .map(([tag, src]) => dom(`${tag}[${src}]`).toArray())
+    .flat()
+    .filter((element) => isLocal(getUrl(element), hostname))
+    .map((element) => {
+      const url = getUrl(element);
+      log(`processing ${url}`);
+      const resource = resolve(pageUrl, url);
+      const filename = buildResourceFilename(outputDirectory, url);
+      dom(element).attr(resourcesMap[element.name], filename);
+      return { resource, filename };
     });
   log('resources processing is complete');
   const pageWithLocalRes = dom.html();
