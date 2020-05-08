@@ -12,7 +12,6 @@ const resourcesMap = { link: 'href', script: 'src', img: 'src' };
 
 const download = ({ resource, filename }) => {
   log(`download ${resource}`);
-  // console.log(`resource: ${resource}\nfilename: ${filename}`);
   return axios
     .get(resource, { responseType: 'stream' })
     .then(({ data }) => data.pipe(createWriteStream(filename)))
@@ -22,33 +21,20 @@ const download = ({ resource, filename }) => {
 const processResources = (html, pageUrl, outputDirectory) => {
   const { hostname } = parse(pageUrl);
   const dom = cheerio.load(html, { decodeEntities: false });
-  /* const localResources = [];
-  Object.entries(resourcesMap)
-    .forEach(([tag, src]) => {
-      dom(`${tag}[${src}]`).each((index, element) => {
-        const resource = dom(element).attr(src);
-        log(`processing ${resource}`);
-        if (isLocal(resource, hostname)) {
-          const filename = buildResourceFilename(outputDirectory, resource);
-          dom(element).attr(src, filename);
-          localResources.push({ resource: resolve(pageUrl, resource), filename });
-        }
-      });
-    });
-*/
   const getUrl = ({ name, attribs }) => attribs[resourcesMap[name]];
   const localResources = Object.entries(resourcesMap)
-    .map(([tag, src]) => dom(`${tag}[${src}]`).toArray())
-    .flat()
+    .flatMap(([tag, src]) => dom(`${tag}[${src}]`).toArray())
     .filter((element) => isLocal(getUrl(element), hostname))
     .map((element) => {
-      const url = getUrl(element);
-      log(`processing ${url}`);
-      const resource = resolve(pageUrl, url);
-      const filename = buildResourceFilename(outputDirectory, url);
-      dom(element).attr(resourcesMap[element.name], filename);
-      return { resource, filename };
+      const resource = resolve(pageUrl, getUrl(element));
+      const filename = buildResourceFilename(outputDirectory, resource);
+      return { element, resource, filename };
     });
+  log('replacing local resources source attribute');
+  localResources.forEach(({ element, resource, filename }) => {
+    log(`${resource} => ${filename}`);
+    dom(element).attr(resourcesMap[element.name], filename);
+  });
   log('resources processing is complete');
   const pageWithLocalRes = dom.html();
   return { pageWithLocalRes, localResources };

@@ -23,11 +23,7 @@ export const buildResourceFilename = (resourcesDirectory, resource) => {
 
 export default (pageUrl, outputDirectory) => {
   const { hostname, pathname } = parse(pageUrl);
-  // console.log(`pageUrl: ${pageUrl}\n  hostname: ${hostname}\n  pathname: ${pathname}`);
   const localName = normalize(join(hostname, pathname));
-  // const pageName = join(hostname, pathname);
-  // console.log(`pageName: ${pageName}`);
-  // const localName = normalize(pageName);
   const [filename, resourcesDirectory] = Object.values(nameTails)
     .map((nameTail) => buildName(outputDirectory, localName, nameTail));
   return { filename, resourcesDirectory };
