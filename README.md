@@ -29,12 +29,5 @@ Options:
 import loadPage from 'loadPage';
 ```
 
-[![asciicast](https://asciinema.org/a/tBn0MYq7eYxnb76ZGVrNooXEL.svg)](https://asciinema.org/a/tBn0MYq7eYxnb76ZGVrNooXEL)
-
-[![asciicast](https://asciinema.org/a/u63efX5lgzMxYKvSCEl38sqdk.svg)](https://asciinema.org/a/u63efX5lgzMxYKvSCEl38sqdk)
-
-[![asciicast](https://asciinema.org/a/ruwottP5yOex1jiwJ2JZlgmDG.svg)](https://asciinema.org/a/ruwottP5yOex1jiwJ2JZlgmDG)
-
-[![asciicast](https://asciinema.org/a/aVOWJ1lFRmGL3tjyQCiIRgZMc.svg)](https://asciinema.org/a/aVOWJ1lFRmGL3tjyQCiIRgZMc)
-
-[![asciicast](https://asciinema.org/a/w8a938qGHS1xJyEkw4GDVLJcg.svg)](https://asciinema.org/a/w8a938qGHS1xJyEkw4GDVLJcg)
+### Demo
+[![asciicast](https://asciinema.org/a/pW0hGDN3Pecv1w0oLEUCegLqJ.svg)](https://asciinema.org/a/pW0hGDN3Pecv1w0oLEUCegLqJ)
